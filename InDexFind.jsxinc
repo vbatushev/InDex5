@@ -39,24 +39,20 @@ Object.prototype.indexFind = function (findArray, workIndex, fStyles, fcStyles, 
 				for (f = 0; f < myFinds.length; f++) {
 					myFinds[f].select(); var FindSelection = app.activeDocument.selection[0];
 					if (fStyles == '') {
-						for (cf = 0; cf < fcStyles.length; cf++) {
-							if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
-								parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
-							}
-						}
+							parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
 					} else {
 						var test = false;
 						for (tf = 0; tf < fStyles.length; tf++) {
 							if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
 							for (cf = 0; cf < fcStyles.length; cf++) {
 								if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
-									test =true;
+									test = true;
 								} else {
 									test = false;
 								}
 							}
 						}
-						if (test) {
+						if (test) { 
 							parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
 						}
 					}
