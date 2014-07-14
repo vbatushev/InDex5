@@ -27,49 +27,51 @@ Object.prototype.indexFind = function (findArray, workIndex, fStyles, fcStyles, 
 			var topicName = findStrings;
 		}
 		
+			
 		findFindString = ss + findString;
 		if (parentObject.topics.itemByName(topicName).isValid) {
 			var parObject = parentObject.topics.itemByName(topicName);
 		} else {
 			var parObject = parentObject.topics.add(topicName);
-			app.findGrepPreferences.findWhat = findFindString;
-			var myFinds = this.findGrep(true);
-			app.findGrepPreferences = null; app.changeGrepPreferences = null;
-			if (myFinds) {
-				for (f = 0; f < myFinds.length; f++) {
-					myFinds[f].select(); var FindSelection = app.activeDocument.selection[0];
-					if (fcStyles == '') { var test = true; } else { var test = false; }
-					if (fStyles == '') {
-							// parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
-						for (tf = 0; tf = fStyles.length; tf++) {
-							if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
-							for (cf = 0; cf < fcStyles.length; cf++) {
-								if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
-									test = true;
-								} else {
-									test = false;
+			if (fa == findArray.length - 1) {
+				app.findGrepPreferences.findWhat = findFindString;
+				var myFinds = this.findGrep(true);
+				app.findGrepPreferences = null; app.changeGrepPreferences = null;
+				if (myFinds) {
+					for (f = 0; f < myFinds.length; f++) {
+						myFinds[f].select(); var FindSelection = app.activeDocument.selection[0];
+						if (fcStyles == '') { var test = true; } else { var test = false; }
+						if (fStyles == '') {
+								// parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
+							for (tf = 0; tf = fStyles.length; tf++) {
+								if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
+								for (cf = 0; cf < fcStyles.length; cf++) {
+									if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
+										test = true;
+									} else {
+										test = false;
+									}
+								}
+							}
+						} else {
+							for (tf = 0; tf < fStyles.length; tf++) {
+								if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
+								for (cf = 0; cf < fcStyles.length; cf++) {
+									if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
+										test = true;
+									} else {
+										test = false;
+									}
 								}
 							}
 						}
-					} else {
-						for (tf = 0; tf < fStyles.length; tf++) {
-							if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
-							for (cf = 0; cf < fcStyles.length; cf++) {
-								if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
-									test = true;
-								} else {
-									test = false;
-								}
-							}
+						if (test) { 
+							parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
 						}
-					}
-					if (test) { 
-						parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
 					}
 				}
 			}
 		}
-
 		parentObject = parObject;
 	}
 }
