@@ -1,4 +1,4 @@
-#include "InDexFind.jsxinc"
+﻿#include "InDexFind.jsxinc"
 
 if (app.documents.length == 0 && app.books.length > 0) {
 	var bookstyledoc = app.open(app.activeBook.bookContents[0].fullName);
@@ -153,11 +153,13 @@ if (result == 1) {
 		}
 		workfile.open('r');
 		do {
-			var el = workfile.readln().split('->');
-			if (el.length > 0) { 
-				wObject.indexFind(el, workIndex, findStyles, findCharStyles, caseSens);
+			var cstr = workfile.readln();
+			if (cstr.substr(0,2) != '##') {
+				var el = cstr.split('->');
+				if (el.length > 0) { 
+					wObject.indexFind(el, workIndex, findStyles, findCharStyles, caseSens);
+				}
 			}
-
 		} while(workfile.eof == false);
 		workfile.close();
 		if (files) {

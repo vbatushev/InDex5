@@ -38,10 +38,20 @@ Object.prototype.indexFind = function (findArray, workIndex, fStyles, fcStyles, 
 			if (myFinds) {
 				for (f = 0; f < myFinds.length; f++) {
 					myFinds[f].select(); var FindSelection = app.activeDocument.selection[0];
+					if (fcStyles == '') { var test = true; } else { var test = false; }
 					if (fStyles == '') {
-							parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
+							// parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
+						for (tf = 0; tf = fStyles.length; tf++) {
+							if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
+							for (cf = 0; cf < fcStyles.length; cf++) {
+								if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
+									test = true;
+								} else {
+									test = false;
+								}
+							}
+						}
 					} else {
-						var test = false;
 						for (tf = 0; tf < fStyles.length; tf++) {
 							if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
 							for (cf = 0; cf < fcStyles.length; cf++) {
@@ -52,9 +62,9 @@ Object.prototype.indexFind = function (findArray, workIndex, fStyles, fcStyles, 
 								}
 							}
 						}
-						if (test) { 
-							parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
-						}
+					}
+					if (test) { 
+						parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
 					}
 				}
 			}

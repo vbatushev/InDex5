@@ -1,4 +1,4 @@
-#include "InDexFind.jsxinc"
+﻿#include "InDexFind.jsxinc"
 
 if (app.documents.length == 0) {
 	alert(docAlertText, docAlertHead, true);  exit();
@@ -104,9 +104,12 @@ if (result == 1) {
 		var wObject = wObjects[w];
 		workfile.open('r');
 		do {
-			var el = workfile.readln().split('->');
-			if (el.length > 0) { 
-				wObject.indexFind(el, workIndex, findStyles, findCharStyles, caseSens);
+			var cstr = workfile.readln();
+			if (cstr.substr(0,2) != '##') {
+				var el = cstr.split('->');
+				if (el.length > 0) { 
+					wObject.indexFind(el, workIndex, findStyles, findCharStyles, caseSens);
+				}				
 			}
 		} while(workfile.eof == false);
 		workfile.close();
