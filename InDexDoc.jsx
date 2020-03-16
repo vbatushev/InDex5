@@ -75,80 +75,47 @@
         result = win.show();
 
         if (result == 1) {
-            var processFootnotes = win.bigGroup.fGroup.prPanel.chk1.value;
-                processHiddenLayers =  win.bigGroup.fGroup.prPanel.chk2.value,
-                processMasterPages =  win.bigGroup.fGroup.prPanel.chk5.value,
-                processLockedLayers =  win.bigGroup.fGroup.prPanel.chk3.value,
-                processLockedStories =  win.bigGroup.fGroup.prPanel.chk4.value,
-                isCaseSens = win.bigGroup.fGroup.casePanel.chk.value;
+            var props = {
+                footnotes: win.bigGroup.fGroup.prPanel.chk1.value,
+                hiddenLayers:  win.bigGroup.fGroup.prPanel.chk2.value,
+                masterPages:  win.bigGroup.fGroup.prPanel.chk5.value,
+                lockedLayers:  win.bigGroup.fGroup.prPanel.chk3.value,
+                lockedStories:  win.bigGroup.fGroup.prPanel.chk4.value,
+                isCaseSens: win.bigGroup.fGroup.casePanel.chk.value,
+                paragaphStyles: [],
+                characterStyles: [],
+                workObjects: [],
+                workFile: workfile
+            };
 
-            app.findChangeGrepOptions.includeFootnotes = processFootnotes;
-            app.findChangeGrepOptions.includeHiddenLayers = processHiddenLayers;
-            app.findChangeGrepOptions.includeMasterPages = processMasterPages;
-            app.findChangeGrepOptions.includeLockedLayersForFind = processLockedLayers;
-            app.findChangeGrepOptions.includeLockedStoriesForFind = processLockedStories;
-
-            var findParaStyles = [];
             if (win.bigGroup.sGroup.paraPanel.lb.selection) {
                 for (var a = 0; a < win.bigGroup.sGroup.paraPanel.lb.selection.length; a++) {
-                    findParaStyles[a] = win.bigGroup.sGroup.paraPanel.lb.selection[a].styleRef;
+                    props.paragaphStyles[a] = win.bigGroup.sGroup.paraPanel.lb.selection[a].styleRef;
                 }
             }
 
-            var findCharStyles = [];
             if (win.bigGroup.csGroup.paraPanel.lb.selection) {
                 for (var a = 0; a < win.bigGroup.csGroup.paraPanel.lb.selection.length; a++) {
-                    findCharStyles[a] =  win.bigGroup.csGroup.paraPanel.lb.selection[a].styleRef;
+                    props.characterStyles[a] =  win.bigGroup.csGroup.paraPanel.lb.selection[a].styleRef;
                 }
             }
-
-            var wObjects = [], workIndex;
 
             if (win.bigGroup.fGroup.tpPanel.chkRemoveTopics.value) IndexFinder.clearIndex(app.activeDocument);
 
             if (app.activeDocument.indexes.length == 0) {
-                workIndex = app.activeDocument.indexes.add();
+                props.workIndex = app.activeDocument.indexes.add();
             } else {
-                workIndex = app.activeDocument.indexes[0];
+                props.workIndex = app.activeDocument.indexes[0];
             }
-
 
             if (app.selection.length == 0 || app.selection[0].constructor.name != 'TextFrame') {
-                wObjects.push(app.activeDocument);
+                props.workObjects.push(app.activeDocument);
             } else {
                 if (app.selection[0].constructor.name == 'TextFrame') {
-                    wObjects.push (app.selection[0].parentStory);
+                    props.workObjects.push (app.selection[0].parentStory);
                 }
             }
-
-            var maxvalue = IndexFinder.lineCounts(workfile) * wObjects.length,
-                progress = new ProgressbarClass(maxvalue, "Process index strings", "InDex " + indexver, false);
-
-            progress.increase();
-            for (var i = 0, l = wObjects.length; i < l; i++) {
-                var wObject = wObjects[i];
-                workfile.open('r');
-                do {
-                    var cstr = workfile.readln();
-                    if (cstr.substr(0,2) != '##') {
-                        var el = cstr.split('->');
-                        if (el.length > 0) {
-                            progress.setLabel("Process " + cstr + "...");
-                            IndexFinder.execute({
-                                obj: wObject,
-                                finds: el,
-                                docIndex: workIndex,
-                                paraStyles: findParaStyles,
-                                charStyles: findCharStyles,
-                                isCaseSens: isCaseSens
-                            });
-                            progress.increase();
-                        }
-                    }
-                } while(workfile.eof == false);
-                workfile.close();
-            }
-            progress.close();
+            IndexFinder.run(props);
             alert('Index is marked.', 'Ready!');
         }
     }

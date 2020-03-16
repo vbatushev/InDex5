@@ -143,10 +143,48 @@ var IndexFinder = (function () {
         }
     }
 
+    var run = function(props) {
+        app.findChangeGrepOptions.includeFootnotes = props.footnotes;
+        app.findChangeGrepOptions.includeHiddenLayers = props.hiddenLayers;
+        app.findChangeGrepOptions.includeMasterPages = props.masterPages;
+        app.findChangeGrepOptions.includeLockedLayersForFind = props.lockedLayers;
+        app.findChangeGrepOptions.includeLockedStoriesForFind = props.lockedStories;
+
+        var maxvalue = getLineCounts(props.workFile) * props.workObjects.length,
+            progress = new ProgressbarClass(maxvalue, "Process index strings", "InDex " + indexver, false);
+
+        progress.increase();
+        for (var i = 0, l = props.workObjects.length; i < l; i++) {
+            var wObject = props.workObjects[i];
+            props.workFile.open('r');
+            do {
+                var cstr = props.workFile.readln();
+                if (cstr.substr(0,2) != '##') {
+                    var el = cstr.split('->');
+                    if (el.length > 0) {
+                        progress.setLabel("Process " + cstr + "...");
+                        main({
+                            obj: wObject,
+                            finds: el,
+                            docIndex: props.workIndex,
+                            paraStyles: props.paragaphStyles,
+                            charStyles: props.characterStyles,
+                            isCaseSens: props.isCaseSens
+                        });
+                        progress.increase();
+                    }
+                }
+            } while(props.workFile.eof == false);
+            props.workFile.close();
+        }
+        progress.close();
+    }
+
     return {
         execute: main,
         lineCounts: getLineCounts,
-        clearIndex: clearIndex
+        clearIndex: clearIndex,
+        run: run
     }
 })();
 

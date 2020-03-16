@@ -1,6 +1,7 @@
 ﻿function BookDialog(indexver, workfile) {
+    app.open(app.activeBook.bookContents[0].fullName);
     var res =
-        "palette {\
+        "dialog {\
             text:' inDex 6 ', \
             properties: { \
                 resizeable: false, \
@@ -50,17 +51,36 @@
 
     win.text = 'InDex for Books ' + indexver + ' by Vitaly Batushev ©';
 
-    var findParaStyles = [];
-    if (win.bigGroup.sGroup.paraPanel.lb.selection) {
-        for (var fs = 0; fs < win.bigGroup.sGroup.lb.selection.length; fs++) {
-            findParaStyles[fs] = app.activeDocument.paragraphStyles.itemByName(win.bigGroup.sGroup.paraPanel.lb.selection[fs].text);
+    for (var a = 0; a < app.activeDocument.paragraphStyles.length; a++) {
+        var styleItem = win.bigGroup.sGroup.paraPanel.lb.add('item', app.activeDocument.paragraphStyles[a].name);
+        win.bigGroup.sGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.paragraphStyles[a];
+    }
+
+    for (var a = 0; a < app.activeDocument.paragraphStyleGroups.length; a++) {
+        for (var b = 0, l = app.activeDocument.paragraphStyleGroups.item(a).paragraphStyles.length; b < l; b++) {
+            var itemName =
+                '[' +
+                app.activeDocument.paragraphStyleGroups.item(a).name +
+                '] ' +
+                app.activeDocument.paragraphStyleGroups.item(a).paragraphStyles.item(b).name;
+            var styleItem = win.bigGroup.sGroup.paraPanel.lb.add('item', itemName);
+            win.bigGroup.sGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.paragraphStyleGroups.item(a).paragraphStyles.item(b);
         }
     }
 
-    var findCharStyles = [];
-    if (win.bigGroup.csGroup.paraPanel.lb.selection) {
-        for (var fs = 0; fs < win.bigGroup.csGroup.paraPanel.lb.selection.length; fs++) {
-            findCharStyles[fs] = app.activeDocument.characterStyles.itemByName(win.bigGroup.csGroup.paraPanel.lb.selection[fs].text);
+    for (var a = 0; a < app.activeDocument.characterStyles.length; a++) {
+        var styleItem = win.bigGroup.csGroup.paraPanel.lb.add('item', app.activeDocument.characterStyles[a].name);
+        win.bigGroup.csGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.characterStyles[a];
+    }
+    for (var a = 0; a < app.activeDocument.characterStyleGroups.length; a++) {
+        for (var b = 0, l = app.activeDocument.characterStyleGroups.item(a).characterStyles.length; b < l; b++) {
+            var itemName =
+                '[' +
+                app.activeDocument.characterStyleGroups.item(a).name +
+                '] ' +
+                app.activeDocument.characterStyleGroups.item(a).characterStyles.item(b).name;
+            var styleItem = win.bigGroup.csGroup.paraPanel.lb.add('item', itemName);
+            win.bigGroup.csGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.characterStyleGroups.item(a).characterStyles.item(b);
         }
     }
 
@@ -81,78 +101,55 @@
     result = win.show();
 
     if (result == 1) {
-        var processFootnotes = win.bigGroup.fGroup.prPanel.chk1.value;
-        processHiddenLayers = win.bigGroup.fGroup.prPanel.chk2.value;
-        processMasterPages = win.bigGroup.fGroup.prPanel.chk5.value;
-        processLockedLayers = win.bigGroup.fGroup.prPanel.chk3.value;
-        processLockedStories = win.bigGroup.fGroup.prPanel.chk4.value;
-        caseSens = win.bigGroup.fGroup.casePanel.chk.value;
+        var props = {
+            footnotes: win.bigGroup.fGroup.prPanel.chk1.value,
+            hiddenLayers: win.bigGroup.fGroup.prPanel.chk2.value,
+            masterPages: win.bigGroup.fGroup.prPanel.chk5.value,
+            lockedLayers: win.bigGroup.fGroup.prPanel.chk3.value,
+            lockedStories: win.bigGroup.fGroup.prPanel.chk4.value,
+            isCaseSens: win.bigGroup.fGroup.casePanel.chk.value,
+            paragaphStyles: [],
+            characterStyles: [],
+            workObjects: [],
+            workFile: workfile
+        };
         allDocs = win.bigGroup.docGroup.docPanel.chkall.value;
 
-        var wObjects = [];
+        var docs = [];
         if (allDocs) {
             for (var a = 0; a < app.activeBook.bookContents.length; a++) {
-                wObjects.push(app.activeBook.bookContents[a].fullName);
+                docs.push(app.activeBook.bookContents[a].fullName);
             }
         } else {
             for (var a = 0; a < win.bigGroup.docGroup.docPanel.lb.selection.length; a++) {
                 var bookCont = app.activeBook.bookContents.itemByName(win.bigGroup.docGroup.docPanel.lb.selection[a].text);
-                wObjects[a] = bookCont.fullName;
+                docs.push(bookCont.fullName);
             }
         }
 
-        var findParaStyles = [];
         if (win.bigGroup.sGroup.paraPanel.lb.selection) {
             for (var a = 0; a < win.bigGroup.sGroup.lb.selection.length; a++) {
-                findParaStyles[a] = app.activeDocument.paragraphStyles.itemByName(win.bigGroup.sGroup.paraPanel.lb.selection[a].text);
+                props.paragaphStyles[a] = win.bigGroup.sGroup.paraPanel.lb.selection[a].styleRef;
             }
         }
 
-        var findCharStyles = [];
         if (win.bigGroup.csGroup.paraPanel.lb.selection) {
             for (var a = 0; fs < win.bigGroup.csGroup.paraPanel.lb.selection.length; a++) {
-                findCharStyles[a] = app.activeDocument.characterStyles.itemByName(win.bigGroup.csGroup.paraPanel.lb.selection[a].text);
+                props.characterStyles[a] = win.bigGroup.csGroup.paraPanel.lb.selection[a].styleRef;
             }
         }
+        app.activeDocument.close(SaveOptions.NO);
 
-        app.findChangeGrepOptions.includeFootnotes = processFootnotes;
-        app.findChangeGrepOptions.includeHiddenLayers = processHiddenLayers;
-        app.findChangeGrepOptions.includeMasterPages = processMasterPages;
-        app.findChangeGrepOptions.includeLockedLayersForFind = processLockedLayers;
-        app.findChangeGrepOptions.includeLockedStoriesForFind = processLockedStories;
-
-        try {
-            bookstyledoc.close(SaveOptions.NO);
-        } catch (e) {}
-
-        var maxvalue = IndexFinder.lineCounts(workfile) * wObjects.length,
-            progress = new ProgressbarClass(maxvalue, 'Process index strings', 'InDex ' + indexver, false);
-
-        progress.increase();
-        for (var i = 0, l = wObjects.length; i < l; i++) {
-            var wObject = wObjects[i];
-            workfile.open('r');
-            do {
-                var cstr = workfile.readln();
-                if (cstr.substr(0, 2) != '##') {
-                    var el = cstr.split('->');
-                    if (el.length > 0) {
-                        progress.setLabel('Process ' + cstr + '...');
-                        IndexFinder.execute({
-                            obj: wObject,
-                            finds: el,
-                            docIndex: workIndex,
-                            paraStyles: findParaStyles,
-                            charStyles: findCharStyles,
-                            isCaseSens: isCaseSens
-                        });
-                        progress.increase();
-                    }
-                }
-            } while (workfile.eof == false);
-            workfile.close();
+        for (var a = 0, l = docs.length; a < l; a++) {
+            app.open(docs[a]);
+            props.workObjects = [app.activeDocument];
+            if (app.activeDocument.indexes.length == 0) {
+                props.workIndex = app.activeDocument.indexes.add();
+            } else {
+                props.workIndex = app.activeDocument.indexes[0];
+            }
+            IndexFinder.run(props);
         }
-        progress.close();
         alert('Index is marked.', 'Ready!');
     }
 };
