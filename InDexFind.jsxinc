@@ -1,77 +1,190 @@
-var indexver = "5.4";
+﻿var indexver = "6.0";
 
 // Языковые параметры
-var docAlertText = "Нет открытых публикаций. Откройте публикацию \nи запустите скрипт еще раз.";
-var docAlertHead = "Ошибка: Нет открытых публикаций";
-var docOpenDialogHead = "Выберите файл с данными";
+var docAlertText = "Not open documents. Open document \nand run script again.",
+    docAlertHead = "Error: not open documents",
+    docOpenDialogHead = "Select file with data for index";
 
 
-function trim (str, charlist) { var whitespace, l = 0, i = 0; str += ''; if (!charlist) { whitespace = " \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000"; } else { charlist += ''; whitespace = charlist.replace(/([\[\]\(\)\.\?\/\*\{\}\+\$\^\:])/g, '$1'); } l = str.length; for (i = 0; i < l; i++) { if (whitespace.indexOf(str.charAt(i)) === -1) { str = str.substring(i); break; } } l = str.length; for (i = l - 1; i >= 0; i--) { if (whitespace.indexOf(str.charAt(i)) === -1) { str = str.substring(0, i + 1);break;}} return whitespace.indexOf(str.charAt(0)) === -1 ? str : ''; }
+var IndexFinder = (function () {
+    var props;
 
-Object.prototype.indexFind = function (findArray, workIndex, fStyles, fcStyles, caseSens) {
+    var main = function (props) {
+        app.findGrepPreferences = null;
+        app.changeGrepPreferences = null;
 
-	app.findGrepPreferences = null; app.changeGrepPreferences = null;
-	var parentObject = workIndex;
-	for (var fa = 0; fa < findArray.length; fa++) {
+        var parentObject = props.docIndex;
+        for (var fa = 0; fa < props.finds.length; fa++) {
 
-		if (!caseSens) { var ss = "(?i)"; } else { var ss = "";}
-		
-		var findStrings = trim(findArray[fa]);
-		
-		var fss = findStrings.split('=>');
-		if (fss.length > 1) {
-			var topicName = fss[0];
-			var findString = fss[1];
-		} else {
-			var findString = findStrings;
-			var topicName = findStrings;
-		}
-		
-			
-		findFindString = ss + findString;
-		if (parentObject.topics.itemByName(topicName).isValid) {
-			var parObject = parentObject.topics.itemByName(topicName);
-		} else {
-			var parObject = parentObject.topics.add(topicName);
-			if (fa == findArray.length - 1) {
-				app.findGrepPreferences.findWhat = findFindString;
-				var myFinds = this.findGrep(true);
-				app.findGrepPreferences = null; app.changeGrepPreferences = null;
-				if (myFinds) {
-					for (f = 0; f < myFinds.length; f++) {
-						myFinds[f].select(); var FindSelection = app.activeDocument.selection[0];
-						if (fcStyles == '') { var test = true; } else { var test = false; }
-						if (fStyles == '') {
-								// parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
-							for (tf = 0; tf = fStyles.length; tf++) {
-								if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
-								for (cf = 0; cf < fcStyles.length; cf++) {
-									if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
-										test = true;
-									} else {
-										test = false;
-									}
-								}
-							}
-						} else {
-							for (tf = 0; tf < fStyles.length; tf++) {
-								if (FindSelection.appliedParagraphStyle == fStyles[tf]) { test =true; }
-								for (cf = 0; cf < fcStyles.length; cf++) {
-									if (FindSelection.appliedCharacterStyle == fcStyles[cf] || fcStyles[cf] == "") { 
-										test = true;
-									} else {
-										test = false;
-									}
-								}
-							}
-						}
-						if (test) { 
-							parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
-						}
-					}
-				}
-			}
-		}
-		parentObject = parObject;
-	}
+            var caseSensPrefix = "";
+            if (!props.isCaseSens) caseSensPrefix = "(?i)";
+
+            var findStrings = trim(props.finds[fa]);
+
+            var findParts = findStrings.split('=>'),
+                topicName = findStrings,
+                findString = findStrings;
+
+            if (findParts.length > 1) {
+                topicName = findParts[0];
+                findString = findParts[1];
+            }
+
+            findString = caseSensPrefix + findString;
+
+            var parObject;
+            if (parentObject.topics.itemByName(topicName).isValid) {
+                parObject = parentObject.topics.itemByName(topicName);
+            } else {
+                parObject = parentObject.topics.add(topicName);
+                if (fa == props.finds.length - 1) {
+                    app.findGrepPreferences.findWhat = findString;
+                    var myFinds = props.obj.findGrep(true);
+                    app.findGrepPreferences = null;
+                    app.changeGrepPreferences = null;
+
+                    if (myFinds) {
+                        for (f = 0; f < myFinds.length; f++) {
+                            myFinds[f].select();
+                            var FindSelection = app.activeDocument.selection[0];
+
+                            var test = false;
+                            if (props.paraStyles.length == 0) {
+                                test = true;
+                                for (cf = 0; cf < props.charStyles.length; cf++) {
+                                    test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
+                                }
+                            } else {
+                                for (tf = 0; tf < props.paraStyles.length; tf++) {
+                                    test = (FindSelection.appliedParagraphStyle == props.paraStyles[tf]);
+                                    if (test) {
+                                        for (cf = 0; cf < props.charStyles.length; cf++) {
+                                            test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (test) {
+                                parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
+                            }
+                        }
+                    }
+                }
+            }
+            parentObject = parObject;
+        }
+    }
+
+    function trim(str, charlist) {
+        var whitespace, l = 0,
+            i = 0;
+        str += '';
+        if (!charlist) {
+            whitespace = " \n\r\t\f\x0b\xa0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000";
+        } else {
+            charlist += '';
+            whitespace = charlist.replace(/([\[\]\(\)\.\?\/\*\{\}\+\$\^\:])/g, '$1');
+        }
+        l = str.length;
+        for (i = 0; i < l; i++) {
+            if (whitespace.indexOf(str.charAt(i)) === -1) {
+                str = str.substring(i);
+                break;
+            }
+        }
+        l = str.length;
+        for (i = l - 1; i >= 0; i--) {
+            if (whitespace.indexOf(str.charAt(i)) === -1) {
+                str = str.substring(0, i + 1);
+                break;
+            }
+        }
+        return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
+    }
+
+    var getLineCounts = function(f) {
+        var result = 0;
+        f.open('r');
+        do {
+            var str = f.readln();
+            if (str.substr(0,2) != '##') {
+                if (str.indexOf("=>") > -1) result++;
+            }
+        } while(f.eof == false);
+        f.close();
+        return result;
+    }
+
+    return {
+        execute: main,
+        lineCounts: getLineCounts
+    }
+})();
+
+/**
+    * Класс индикатора выполнения
+    * @param {Number} maxValue             Максимальное значение индикатора
+    * @param {String} barLabel             Текст над индикатором
+    * @param {String} panelTitle           Заголовок панели
+    * @param {String} Info                 Текст под индикатором
+    *
+    * @method close()                      Закрывает окно индикатора выполнения
+    * @method reset(maxValue, barLabel)    Новые значения для максимума и текста над индикатором
+    * @method setVal(barValue)             Устанавливает конкретное значение индикатора
+    * @method increase()                   Увеличивает значение индикатора на единицу
+    * @method setLabel(str)                Устанавливает новое значение текста над индикатором
+    * @method setPanelLabel(str)           Устанавливает новое значение заголовка панели
+    * @method setInfo(str)                 Устанавливает новое значение текста под индикатором
+    */
+
+function ProgressbarClass (maxValue, barLabel, panelTitle, viewInfo) {
+    var panelTitle = panelTitle || Locales.ProgressBar.panelTitle;
+    var viewInfo = viewInfo || false;
+    var Info = "";
+
+    var win = new Window("palette", "", undefined, { closeButton:true, maximizeButton:false, minimizeButton:false, resizeable:false, borderless: false});
+    this.windowRef = win;
+
+    if (viewInfo) {
+        win.pnl = win.add("panel", [10, 10, 440, 210], panelTitle);
+        win.pnl.progBarLabel = win.pnl.add("statictext", [20, 15, 405, 30], barLabel);
+        win.pnl.progBar = win.pnl.add("progressbar", [20, 35, 405, 60], 0, maxValue);
+        win.pnl.log = win.pnl.add("panel", [20, 65, 405, 175], "");
+        win.pnl.log.info = win.pnl.log.add("statictext", [5, 5, 385, 150], Info, {multiline: true, scrolling: false});
+        win.pnl.log.info.visible = true;
+    } else {
+        win.pnl = win.add("panel", [10, 10, 440, 100], panelTitle);
+        win.pnl.progBarLabel = win.pnl.add("statictext", [20, 15, 405, 30], barLabel);
+        win.pnl.progBar = win.pnl.add("progressbar", [20, 35, 405, 60], 0, maxValue);
+    }
+
+    win.cancelBtn  = win.add("button", [0, 0, 0, 0], "Отменить");
+    win.cancelBtn.visible = true;
+    win.cancelElement = win.cancelBtn ;
+    this.terminated = false;
+
+    win.onCancel = function() {
+        this.isDone = true;
+        return true;
+    }
+
+    win.center();
+    win.show();
+
+    this.close = function() {
+        win.close();
+    };
+    this.reset = function (maxValue, barLabel) {
+        this.windowRef.pnl.progBar.maxvalue = maxValue;
+        this.windowRef.pnl.progBar.value = 0;
+        this.windowRef.pnl.progBarLabel.text = barLabel;
+    };
+    this.setVal = function (barValue) { this.windowRef.pnl.progBar.value = barValue; };
+    this.increase = function () { this.windowRef.pnl.progBar.value++; };
+    this.setLabel = function (str) { this.windowRef.pnl.progBarLabel.text = str; };
+    this.setPanelLabel = function (str) { this.windowRef.pnl.text = str; };
+    this.setInfo = function (str) {
+        this.windowRef.pnl.log.info.text = str;
+    };
 }
