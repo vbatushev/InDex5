@@ -45,8 +45,30 @@
 
         win.text = "InDex for Document " + indexver + " by Vitaly Batushev ©";
 
-        for (pr = 0;  pr < app.activeDocument.paragraphStyles.length; pr++) { win.bigGroup.sGroup.paraPanel.lb.add('item',app.activeDocument.paragraphStyles[pr].name); }
-        for (pr = 0;  pr < app.activeDocument.characterStyles.length; pr++) { win.bigGroup.csGroup.paraPanel.lb.add('item',app.activeDocument.characterStyles[pr].name); }
+        for (var a = 0;  a < app.activeDocument.paragraphStyles.length; a++) {
+            var styleItem = win.bigGroup.sGroup.paraPanel.lb.add('item',app.activeDocument.paragraphStyles[a].name);
+            win.bigGroup.sGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.paragraphStyles[a];
+        }
+
+        for (var a = 0; a < app.activeDocument.paragraphStyleGroups.length; a++) {
+            for (var b = 0, l = app.activeDocument.paragraphStyleGroups.item(a).paragraphStyles.length; b < l; b++) {
+                var itemName = "[" + app.activeDocument.paragraphStyleGroups.item(a).name + "] " + app.activeDocument.paragraphStyleGroups.item(a).paragraphStyles.item(b).name;
+                var styleItem = win.bigGroup.sGroup.paraPanel.lb.add('item', itemName);
+                win.bigGroup.sGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.paragraphStyleGroups.item(a).paragraphStyles.item(b);
+            }
+        }
+
+        for (var a = 0;  a < app.activeDocument.characterStyles.length; a++) {
+            var styleItem = win.bigGroup.csGroup.paraPanel.lb.add('item',app.activeDocument.characterStyles[a].name);
+            win.bigGroup.csGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.characterStyles[a];
+        }
+        for (var a = 0; a < app.activeDocument.characterStyleGroups.length; a++) {
+            for (var b = 0, l = app.activeDocument.characterStyleGroups.item(a).characterStyles.length; b < l; b++) {
+                var itemName = "[" + app.activeDocument.characterStyleGroups.item(a).name + "] " + app.activeDocument.characterStyleGroups.item(a).characterStyles.item(b).name;
+                var styleItem = win.bigGroup.csGroup.paraPanel.lb.add('item', itemName);
+                win.bigGroup.csGroup.paraPanel.lb.items[styleItem.index].styleRef = app.activeDocument.characterStyleGroups.item(a).characterStyles.item(b);
+            }
+        }
         win.bigGroup.fGroup.casePanel.chk.value = false;
 
         win.center();
@@ -68,21 +90,21 @@
 
             var findParaStyles = [];
             if (win.bigGroup.sGroup.paraPanel.lb.selection) {
-                for (fs = 0; fs < win.bigGroup.sGroup.paraPanel.lb.selection.length; fs++) {
-                    findParaStyles[fs] =  app.activeDocument.paragraphStyles.itemByName(win.bigGroup.sGroup.paraPanel.lb.selection[fs].text);
+                for (var a = 0; a < win.bigGroup.sGroup.paraPanel.lb.selection.length; a++) {
+                    findParaStyles[a] = win.bigGroup.sGroup.paraPanel.lb.selection[a].styleRef;
                 }
             }
 
             var findCharStyles = [];
             if (win.bigGroup.csGroup.paraPanel.lb.selection) {
-                for (fs = 0; fs < win.bigGroup.csGroup.paraPanel.lb.selection.length; fs++) {
-                    findCharStyles[fs] =  app.activeDocument.characterStyles.itemByName(win.bigGroup.csGroup.paraPanel.lb.selection[fs].text);
+                for (var a = 0; a < win.bigGroup.csGroup.paraPanel.lb.selection.length; a++) {
+                    findCharStyles[a] =  win.bigGroup.csGroup.paraPanel.lb.selection[a].styleRef;
                 }
             }
 
             var wObjects = [], workIndex;
 
-            if (win.bigGroup.fGroup.tpPanel.chkRemoveTopics.value) clearIndex();
+            if (win.bigGroup.fGroup.tpPanel.chkRemoveTopics.value) IndexFinder.clearIndex(app.activeDocument);
 
             if (app.activeDocument.indexes.length == 0) {
                 workIndex = app.activeDocument.indexes.add();
@@ -128,23 +150,6 @@
             }
             progress.close();
             alert('Index is marked.', 'Ready!');
-        }
-    }
-
-    function clearIndex() {
-        for (var i = 0, l = app.activeDocument.indexes.length; i < l; i++) {
-            var iIndex = app.activeDocument.indexes[i];
-            for (var s = iIndex.indexSections.length - 1; s > -1; s--) {
-                var section = iIndex.indexSections.item(s);
-                for (var t = section.allTopics.length - 1; t > -1; t--) {
-                    var topic = section.allTopics[t];
-                    for (var p = topic.pageReferences.length; p > -1; p--) {
-                        var pageRef = topic.pageReferences.item(p);
-                        if (pageRef.isValid) pageRef.remove();
-                    }
-                }
-            }
-            iIndex.removeUnusedTopics();
         }
     }
 

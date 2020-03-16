@@ -35,43 +35,46 @@ var IndexFinder = (function () {
             var parObject;
             if (parentObject.topics.itemByName(topicName).isValid) {
                 parObject = parentObject.topics.itemByName(topicName);
+                clearReferences(parObject);
             } else {
                 parObject = parentObject.topics.add(topicName);
-                if (fa == props.finds.length - 1) {
-                    app.findGrepPreferences.findWhat = findString;
-                    var myFinds = props.obj.findGrep(true);
-                    app.findGrepPreferences = null;
-                    app.changeGrepPreferences = null;
+            }
 
-                    if (myFinds) {
-                        for (f = 0; f < myFinds.length; f++) {
-                            myFinds[f].select();
-                            var FindSelection = app.activeDocument.selection[0];
+            if (fa == props.finds.length - 1) {
+                app.findGrepPreferences.findWhat = findString;
+                var myFinds = props.obj.findGrep(true);
+                app.findGrepPreferences = null;
+                app.changeGrepPreferences = null;
 
-                            var test = false;
-                            if (props.paraStyles.length == 0) {
-                                test = true;
-                                for (cf = 0; cf < props.charStyles.length; cf++) {
-                                    test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
-                                }
-                            } else {
-                                for (tf = 0; tf < props.paraStyles.length; tf++) {
-                                    test = (FindSelection.appliedParagraphStyle == props.paraStyles[tf]);
-                                    if (test) {
-                                        for (cf = 0; cf < props.charStyles.length; cf++) {
-                                            test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
-                                        }
+                if (myFinds) {
+                    for (f = 0; f < myFinds.length; f++) {
+                        myFinds[f].select();
+                        var FindSelection = app.activeDocument.selection[0];
+
+                        var test = false;
+                        if (props.paraStyles.length == 0) {
+                            test = true;
+                            for (cf = 0; cf < props.charStyles.length; cf++) {
+                                test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
+                            }
+                        } else {
+                            for (tf = 0; tf < props.paraStyles.length; tf++) {
+                                test = (FindSelection.appliedParagraphStyle == props.paraStyles[tf]);
+                                if (test) {
+                                    for (cf = 0; cf < props.charStyles.length; cf++) {
+                                        test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
                                     }
                                 }
                             }
+                        }
 
-                            if (test) {
-                                parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
-                            }
+                        if (test) {
+                            parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
                         }
                     }
                 }
             }
+            //}
             parentObject = parObject;
         }
     }
@@ -103,6 +106,13 @@ var IndexFinder = (function () {
         return whitespace.indexOf(str.charAt(0)) === -1 ? str : '';
     }
 
+    function clearReferences(topic) {
+        for (var p = topic.pageReferences.length; p > -1; p--) {
+            var pageRef = topic.pageReferences.item(p);
+            if (pageRef.isValid) pageRef.remove();
+        }
+    }
+
     var getLineCounts = function(f) {
         var result = 0;
         f.open('r');
@@ -116,9 +126,27 @@ var IndexFinder = (function () {
         return result;
     }
 
+    var clearIndex = function(doc) {
+        for (var i = 0, l = doc.indexes.length; i < l; i++) {
+            var iIndex = doc.indexes[i];
+            for (var s = iIndex.indexSections.length - 1; s > -1; s--) {
+                var section = iIndex.indexSections.item(s);
+                for (var t = section.allTopics.length - 1; t > -1; t--) {
+                    var topic = section.allTopics[t];
+                    for (var p = topic.pageReferences.length; p > -1; p--) {
+                        var pageRef = topic.pageReferences.item(p);
+                        if (pageRef.isValid) pageRef.remove();
+                    }
+                }
+            }
+            iIndex.removeUnusedTopics();
+        }
+    }
+
     return {
         execute: main,
-        lineCounts: getLineCounts
+        lineCounts: getLineCounts,
+        clearIndex: clearIndex
     }
 })();
 

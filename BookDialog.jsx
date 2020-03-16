@@ -48,8 +48,7 @@
         }";
     var win = new Window(res);
 
-    win.text = 'InDex for Books ver. ' + indexver + ' by Vitaly Batushev ©';
-    win.bottomGroup.creditGroup.credit.text = 'InDex for Books ver. ' + indexver + ' by Vitaly Batushev © 2020';
+    win.text = 'InDex for Books ' + indexver + ' by Vitaly Batushev ©';
 
     var findParaStyles = [];
     if (win.bigGroup.sGroup.paraPanel.lb.selection) {
