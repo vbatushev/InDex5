@@ -18,7 +18,7 @@ InDex6
 
 ### Установка
 
-Скачайте файл InDex6.jsxbin(https://raw.githubusercontent.com/vbatushev/InDex5/master/InDex6.jsxbin), поместите его в папку InDesign для скриптов и запустите.
+Скачайте файл [InDex6.jsxbin](https://raw.githubusercontent.com/vbatushev/InDex5/master/InDex6.jsxbin), поместите его в папку InDesign для скриптов и запустите.
 
 Либо склонируйте репозиторий (git clone) в папку скриптов InDesign и запустите либо InDex6.jsxbin, либо InDex6.jsx.
 
