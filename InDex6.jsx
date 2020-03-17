@@ -1,5 +1,5 @@
 ﻿var Index6 = (function(){
-    #include "IndexDialog.jsx"
+    #include "IndexDialog.jsxinc"
     #include "InDexFind.jsxinc"
 
     var main = function() {
