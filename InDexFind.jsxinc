@@ -1,4 +1,4 @@
-﻿var indexver = "6.0";
+﻿var indexver = "6.0.1";
 
 // Языковые параметры
 var docAlertText = "Not open documents. Open document \nand run script again.",
@@ -14,12 +14,12 @@ var IndexFinder = (function () {
         app.changeGrepPreferences = null;
 
         var parentObject = props.docIndex;
-        for (var fa = 0; fa < props.finds.length; fa++) {
+        for (var i = 0; i < props.finds.length; i++) {
 
             var caseSensPrefix = "";
             if (!props.isCaseSens) caseSensPrefix = "(?i)";
 
-            var findStrings = trim(props.finds[fa]);
+            var findStrings = trim(props.finds[i]);
 
             var findParts = findStrings.split('=>'),
                 topicName = findStrings,
@@ -32,50 +32,49 @@ var IndexFinder = (function () {
 
             findString = caseSensPrefix + findString;
 
-            var parObject;
+            var topic;
             if (parentObject.topics.itemByName(topicName).isValid) {
-                parObject = parentObject.topics.itemByName(topicName);
-                clearReferences(parObject);
+                topic = parentObject.topics.itemByName(topicName);
+                clearReferences(topic);
             } else {
-                parObject = parentObject.topics.add(topicName);
+                topic = parentObject.topics.add(topicName);
             }
 
-            if (fa == props.finds.length - 1) {
+            if (i == props.finds.length - 1) {
                 app.findGrepPreferences.findWhat = findString;
-                var myFinds = props.obj.findGrep(true);
-                app.findGrepPreferences = null;
-                app.changeGrepPreferences = null;
+                processFind(props.obj.findGrep(true), topic);
+            }
+            parentObject = topic;
+        }
 
-                if (myFinds) {
-                    for (f = 0; f < myFinds.length; f++) {
-                        myFinds[f].select();
-                        var FindSelection = app.activeDocument.selection[0];
+        function processFind(finds, topic) {
+            app.findGrepPreferences = null;
+            app.changeGrepPreferences = null;
+            if (!finds.length) return;
+            for (var a = 0; a < finds.length; a++) {
+                var current = finds[a];
 
-                        var test = false;
-                        if (props.paraStyles.length == 0) {
-                            test = true;
-                            for (cf = 0; cf < props.charStyles.length; cf++) {
-                                test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
-                            }
-                        } else {
-                            for (tf = 0; tf < props.paraStyles.length; tf++) {
-                                test = (FindSelection.appliedParagraphStyle == props.paraStyles[tf]);
-                                if (test) {
-                                    for (cf = 0; cf < props.charStyles.length; cf++) {
-                                        test = (FindSelection.appliedCharacterStyle == props.charStyles[cf]);
-                                    }
-                                }
-                            }
-                        }
-
+                var test = false;
+                if (props.paraStyles.length == 0) {
+                    test = true;
+                    for (var i = 0; i < props.charStyles.length; i++) {
+                        test = current.appliedCharacterStyle == props.charStyles[i];
+                    }
+                } else {
+                    for (var i = 0; i < props.paraStyles.length; i++) {
+                        test = current.appliedParagraphStyle == props.paraStyles[i];
                         if (test) {
-                            parObject.pageReferences.add(FindSelection, PageReferenceType.currentPage);
+                            for (var j = 0; j < props.charStyles.length; j++) {
+                                test = current.appliedCharacterStyle == props.charStyles[j];
+                            }
                         }
                     }
                 }
+
+                if (test) {
+                    topic.pageReferences.add(current, PageReferenceType.currentPage);
+                }
             }
-            //}
-            parentObject = parObject;
         }
     }
 

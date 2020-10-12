@@ -1,5 +1,6 @@
 *.txt
 .vscode
 *.indd
+*.idml
 *.indb
 test
